@@ -29,7 +29,6 @@
  * abaaso.flickr
  *
  * @author Jason Mulligan <jason.mulligan@avoidwork.com>
- * @copyright 2011 Jason Mulligan <jason.mulligan@avoidwork.com>
  * @link http://avoidwork.com
  * @requires abaaso 1.6.003
  * @requires abaaso.fx 1.1

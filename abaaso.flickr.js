@@ -29,7 +29,6 @@
  * abaaso.flickr
  *
  * @author Jason Mulligan <jason.mulligan@avoidwork.com>
- * @copyright 2011 Jason Mulligan <jason.mulligan@avoidwork.com>
  * @link http://avoidwork.com
  * @requires abaaso 1.6.003
  * @requires abaaso.fx 1.1
@@ -39,13 +38,13 @@ abaaso.on("ready", function(){
 	abaaso.un("ready", "abaaso.flickr");
 
 	abaaso.define("flickr", {
-		config   : {
-			data : {},
-			id   : null,
-			key  : null,
+		config : {
+			data   : {},
+			id     : null,
+			key    : null,
 			photo  : null,
 			loaded : null,
-			sets : [""]
+			sets   : [""]
 		},
 
 		/**
