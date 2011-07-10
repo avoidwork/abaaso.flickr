@@ -9,11 +9,13 @@
  */
 
 abaaso.on("ready", function(){
+	abaaso.un("ready", "abaaso.flickr");
+
 	abaaso.define("flickr", {
 		config   : {
 			data : {},
-			id   : "",
-			key  : "",
+			id   : null,
+			key  : null,
 			photo  : null,
 			loaded : null,
 			sets : [""]
@@ -43,6 +45,14 @@ abaaso.on("ready", function(){
 		 */
 		init : function(){
 			try {
+				abaaso.un("render", "abaaso.flickr");
+
+				switch (true) {
+					case (this.config.id === null):
+					case (this.config.key === null):
+						throw Error(abaaso.label.error)
+				}
+
 				var self = this,
 				    i    = (self.config.sets.length > 1) ? Math.floor(Math.random() * self.config.sets.length + 1) : 0,
 				    uri  = "http://api.flickr.com/services/rest/?&method=flickr.photosets.getPhotos&api_key=" + self.config.key + "&photoset_id=" + self.config.sets[i] + "&format=json&jsoncallback=?",
@@ -163,7 +173,7 @@ abaaso.on("ready", function(){
 
 		version : "1.0"
 	});
-}, "gui");
+}, "abaaso.flickr", abaaso);
 
 // Starting the GUI
-abaaso.on("render", function(){ abaaso.flickr.init(); }, "gui");
+abaaso.on("render", function(){ abaaso.flickr.init(); }, "abaaso.flickr", abaaso);
