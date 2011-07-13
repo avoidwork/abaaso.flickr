@@ -32,14 +32,14 @@
  *
  * @author Jason Mulligan <jason.mulligan@avoidwork.com>
  * @link http://avoidwork.com
- * @requires abaaso 1.6.015
+ * @requires abaaso 1.6.017
  * @requires abaaso.fx 1.1
  * @version 1.0.beta
  */
-abaaso.on("ready", function(){
-	abaaso.un("ready", "abaaso.flickr");
+$.on("ready", function(){
+	$.un("ready", "abaaso.flickr");
 
-	abaaso.define("flickr", {
+	$.define("flickr", {
 		config : {
 			data   : {},
 			id     : null,
@@ -64,7 +64,7 @@ abaaso.on("ready", function(){
 
 			var  self = this,
 			     r    = self.data.get(index).data,
-			     img  = abaaso.create("img", {style:"display:none;", "class": "photo", src: r.sizes.last().source}, $("#photo"));
+			     img  = $.create("img", {style:"display:none;", "class": "photo", src: r.sizes.last().source}, $("#photo"));
 
 			img.on("load", function(){
 				($(".photo").length > 1) ? $(".photo:first").destroy() : void(0);
@@ -101,7 +101,7 @@ abaaso.on("ready", function(){
 					case (($.client.mobile) && ($.client.tablet)):
 						// $("#nav").hide();
 					default:
-						abaaso.on("resize", function(arg){ this.resize(arg); }, "photo", this);
+						$.on("resize", function(arg){ this.resize(arg); }, "photo", this);
 						$("#next").on("click", function(){ this.next(); }, "next", this);
 						$("#prev").on("click", function(){ this.prev(); }, "prev", this);
 						$("#slideshow").on("click", function(){
@@ -225,4 +225,4 @@ abaaso.on("ready", function(){
 
 		version : "1.0.beta"
 	});
-}, "abaaso.flickr", abaaso);
+}, "abaaso.flickr");
