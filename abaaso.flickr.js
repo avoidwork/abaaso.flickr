@@ -28,11 +28,13 @@
 /**
  * abaaso.flickr
  *
+ * Note: Internet Explorer 8 is not supported
+ *
  * @author Jason Mulligan <jason.mulligan@avoidwork.com>
  * @link http://avoidwork.com
- * @requires abaaso 1.6.003
+ * @requires abaaso 1.6.015
  * @requires abaaso.fx 1.1
- * @version 1.0
+ * @version 1.0.beta
  */
 abaaso.on("ready", function(){
 	abaaso.un("ready", "abaaso.flickr");
@@ -44,7 +46,10 @@ abaaso.on("ready", function(){
 			key    : null,
 			photo  : null,
 			loaded : null,
-			sets   : [""]
+			timer  : undefined,
+			timeout : 30000,
+			sets   : [""],
+			slide  : false
 		},
 
 		/**
@@ -55,14 +60,18 @@ abaaso.on("ready", function(){
 		display : function(index){
 			if (index != this.config.photo) { return; }
 
-			var r  = this.data.get(index).data,
-			   img = abaaso.create("img", {style:"display:none;", "class": "photo", src: r.sizes.last().source}, $("#photo"));
+			clearTimeout(this.config.timer);
+
+			var  self = this,
+			     r    = self.data.get(index).data,
+			     img  = abaaso.create("img", {style:"display:none;", "class": "photo", src: r.sizes.last().source}, $("#photo"));
 
 			img.on("load", function(){
 				($(".photo").length > 1) ? $(".photo:first").destroy() : void(0);
 				this.style.display = "block";
-				abaaso.flickr.resize(abaaso.client.size);
+				self.resize($.client.size);
 				this.un("load").opacity(0).fade(1000);
+				(self.config.slide === true) ? self.config.timer = setTimeout(function(){ self.next.call(self); }, self.config.timeout) : void(0);
 			});
 		},
 
@@ -74,7 +83,8 @@ abaaso.on("ready", function(){
 				switch (true) {
 					case (this.config.id === null):
 					case (this.config.key === null):
-						throw Error(abaaso.label.error.invalidArguments)
+					case (($.client.ie) && ($.client.version == 8)):
+						throw Error($.label.error.invalidArguments)
 				}
 
 				var self = this,
@@ -87,32 +97,50 @@ abaaso.on("ready", function(){
 				$("#year").text(new Date().getFullYear());
 
 				// UX listeners
-				$("#next").on("click", function(){ this.next(); }, "next", this);
-				$("#prev").on("click", function(){ this.prev(); }, "prev", this);
-				abaaso.on("resize", function(arg){ this.resize(arg); }, "photo", this);
+				switch (true) {
+					case (($.client.mobile) && ($.client.tablet)):
+						// $("#nav").hide();
+					default:
+						abaaso.on("resize", function(arg){ this.resize(arg); }, "photo", this);
+						$("#next").on("click", function(){ this.next(); }, "next", this);
+						$("#prev").on("click", function(){ this.prev(); }, "prev", this);
+						$("#slideshow").on("click", function(){
+							switch (true) {
+								case (this.config.slide):
+									$("#slideshow").text("Start");
+									this.config.slide = false;
+									clearTimeout(this.config.timer);
+									break;
+								default:
+									$("#slideshow").text("Stop");
+									this.config.slide = true;
+									this.next();
+							}
+						}, "slideshow", this);
+				}
 
 				fn = function(arg){
 					try {
 						self.config.data[self.config.loaded] = arg.photoset.photo;
-						abaaso.store(self, self.config.data[self.config.loaded]);
+						$.store(self, self.config.data[self.config.loaded]);
 						index = self.next();
 						for (var i = 0, loop = self.data.records.length; i < loop; i++) {
 							if (i == index) { continue; }
 							self.load(self.data.records[i].data, i, false);
 						}
-						delete self.init;
+						delete self.init;	
 					}
 					catch (e) {
-						abaaso.error(e, arguments, this);
+						$.error(e, arguments, this);
 						self.init();
 					}
 				}
 
 				// Displays a random photo in the set, builds a grid
-				abaaso.jsonp(uri, fn, "jsoncallback");
+				$.jsonp(uri, fn, "jsoncallback");
 			}
 			catch (e) {
-				abaaso.error(e, arguments, this);
+				$.error(e, arguments, this);
 			}
 		},
 
@@ -148,7 +176,7 @@ abaaso.on("ready", function(){
 					photo.sizes = [].concat(arg.sizes.size);
 					(display === true) ? self.display(index) : void(0);
 				};
-				abaaso.jsonp(uri, fn, "jsoncallback");
+				$.jsonp(uri, fn, "jsoncallback");
 			}
 			else {
 				(display === true) ? self.display(index) : void(0);
@@ -195,6 +223,6 @@ abaaso.on("ready", function(){
 			c.style.width  = size.x;
 		},
 
-		version : "1.0"
+		version : "1.0.beta"
 	});
 }, "abaaso.flickr", abaaso);
