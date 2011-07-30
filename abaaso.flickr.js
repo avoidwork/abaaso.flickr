@@ -32,14 +32,12 @@
  *
  * @author Jason Mulligan <jason.mulligan@avoidwork.com>
  * @link http://avoidwork.com
- * @requires abaaso 1.6.017
+ * @requires abaaso 1.6.018
  * @requires abaaso.fx 1.1
  * @version 1.0.beta
  */
 $.on("ready", function(){
-	$.un("ready", "abaaso.flickr");
-
-	$.define("flickr", {
+	this.define("flickr", {
 		config : {
 			data   : {},
 			id     : null,
@@ -58,20 +56,22 @@ $.on("ready", function(){
 		 * @param index {Integer} Index of photo
 		 */
 		display : function(index){
-			if (index != this.config.photo) { return; }
+			if (index != this.config.photo) return;
 
 			clearTimeout(this.config.timer);
 
 			var  self = this,
 			     r    = self.data.get(index).data,
-			     img  = $.create("img", {style:"display:none;", "class": "photo", src: r.sizes.last().source}, $("#photo"));
+			     obj  = $("#photo"),
+			     img  = $.create("img", {style:"display:none;", src: r.sizes.last().source}, obj);
 
 			img.on("load", function(){
-				($(".photo").length > 1) ? $(".photo:first").destroy() : void(0);
-				this.style.display = "block";
-				self.resize($.client.size);
-				this.un("load").opacity(0).fade(1000);
-				(self.config.slide === true) ? self.config.timer = setTimeout(function(){ self.next.call(self); }, self.config.timeout) : void(0);
+				this.un("load");
+				obj.hide();
+				obj.style.backgroundImage = "url(" + this.src + ")";
+				this.destroy();
+				obj.opacity(0).show().fade(1000);
+				if (self.config.slide === true) self.config.timer = setTimeout(function(){ self.next.call(self); }, self.config.timeout);
 			});
 		},
 
@@ -80,12 +80,8 @@ $.on("ready", function(){
 		 */
 		init : function(){
 			try {
-				switch (true) {
-					case (this.config.id === null):
-					case (this.config.key === null):
-					case (($.client.ie) && ($.client.version == 8)):
-						throw Error($.label.error.invalidArguments)
-				}
+				if (this.config.id === null || this.config.key === null || ($.client.ie && $.client.version == 8))
+						throw Error($.label.error.invalidArguments);
 
 				var self = this,
 				    i    = (self.config.sets.length > 1) ? Math.floor(Math.random() * self.config.sets.length + 1) : 0,
@@ -93,26 +89,25 @@ $.on("ready", function(){
 				    key, fn, index;
 
 				self.config.loaded = self.config.sets[i];
-
-				$("#year").text(new Date().getFullYear());
+				if (!/undefined/.test(typeof $("#year"))) $("#year").text(new Date().getFullYear());
 
 				// UX listeners
 				switch (true) {
 					case (($.client.mobile) && ($.client.tablet)):
 						// $("#nav").hide();
+						// break;
 					default:
-						$.on("resize", function(arg){ this.resize(arg); }, "photo", this);
 						$("#next").on("click", function(){ this.next(); }, "next", this);
 						$("#prev").on("click", function(){ this.prev(); }, "prev", this);
 						$("#slideshow").on("click", function(){
 							switch (true) {
-								case (this.config.slide):
-									$("#slideshow").text("Start");
+								case this.config.slide:
+									$("#slideshow").update({innerHTML: "Start"});
 									this.config.slide = false;
 									clearTimeout(this.config.timer);
 									break;
 								default:
-									$("#slideshow").text("Stop");
+									$("#slideshow").update({innerHTML: "Stop"});
 									this.config.slide = true;
 									this.next();
 							}
@@ -122,7 +117,7 @@ $.on("ready", function(){
 				fn = function(arg){
 					try {
 						self.config.data[self.config.loaded] = arg.photoset.photo;
-						$.store(self, self.config.data[self.config.loaded]);
+						$.store(self, arg.photoset.photo);
 						index = self.next();
 						for (var i = 0, loop = self.data.records.length; i < loop; i++) {
 							if (i == index) { continue; }
@@ -171,27 +166,24 @@ $.on("ready", function(){
 			var uri = "http://api.flickr.com/services/rest/?&method=flickr.photos.getSizes&api_key=" + this.config.key + "&photo_id=" + photo.id + "&format=json&jsoncallback=?",
 			    self = this, fn;
 
-			if (typeof photo.sizes == "undefined") {
+			if (/undefined/.test(typeof photo.sizes)) {
 				fn = function(arg){
 					photo.sizes = [].concat(arg.sizes.size);
-					(display === true) ? self.display(index) : void(0);
+					if (display === true) self.display(index);
 				};
 				$.jsonp(uri, fn, "jsoncallback");
 			}
-			else {
-				(display === true) ? self.display(index) : void(0);
-			}
+			else { if (display === true) self.display(index); }
 		},
 
 		/**
 		 * Displays the next image in the set
 		 */
 		next : function(){
-			var i = (this.config.photo === null) ? Math.floor(Math.random() * this.data.records.length + 1)
-			                                     : parseInt(this.config.photo) + 1;
+			var i = (this.config.photo === null) ? Math.floor(Math.random() * this.data.records.length + 1) : parseInt(this.config.photo) + 1;
 
-			(i > this.data.records.length) ? i = 0 : void(0);
-			this.config.photo  = i;
+			if (i > this.data.records.length) i = 0;
+			this.config.photo = i;
 			this.load(this.data.get(i).data, i);
 			return i;
 		},
@@ -200,27 +192,12 @@ $.on("ready", function(){
 		 * Displays the previous image in the set
 		 */
 		prev : function(){
-			var i = (this.config.photo === null) ? Math.floor(Math.random() * this.data.records.length + 1)
-			                                     : parseInt(this.config.photo) - 1;
+			var i = (this.config.photo === null) ? Math.floor(Math.random() * this.data.records.length + 1) : parseInt(this.config.photo) - 1;
 
-			(i < 0 ) ? i = this.data.records.length : void(0);
-
+			if (i < 0 ) i = this.data.total - 1;
 			this.config.photo  = i;
 			this.load(this.data.get(i).data, i);
 			return i;
-		},
-
-		/**
-		 * Resizes the photo container
-		 */
-		resize : function(size){
-			var p = $("#photo"),
-			    c = $("#cover");
-
-			p.style.height = size.y;
-			p.style.width  = size.x;
-			c.style.height = size.y;
-			c.style.width  = size.x;
 		},
 
 		version : "1.0.beta"
