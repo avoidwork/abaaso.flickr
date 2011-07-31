@@ -32,22 +32,22 @@
  *
  * @author Jason Mulligan <jason.mulligan@avoidwork.com>
  * @link http://avoidwork.com
- * @requires abaaso 1.6.018
+ * @requires abaaso 1.6.080
  * @requires abaaso.fx 1.1
- * @version 1.0.beta
+ * @version 1.0.tech
  */
 $.on("ready", function(){
 	this.define("flickr", {
 		config : {
-			data   : {},
-			id     : null,
-			key    : null,
-			photo  : null,
-			loaded : null,
-			timer  : undefined,
+			data    : {},
+			id      : null,
+			key     : null,
+			photo   : null,
+			loaded  : null,
+			timer   : undefined,
 			timeout : 30000,
-			sets   : [""],
-			slide  : false
+			sets    : [""],
+			slide   : false
 		},
 
 		/**
@@ -55,7 +55,7 @@ $.on("ready", function(){
 		 *
 		 * @param index {Integer} Index of photo
 		 */
-		display : function(index){
+		display : function(index) {
 			if (index != this.config.photo) return;
 
 			clearTimeout(this.config.timer);
@@ -76,6 +76,43 @@ $.on("ready", function(){
 		},
 
 		/**
+		 * Displays or hides the image grid
+		 *
+		 * @param visible {Boolean} Display or hide the grid
+		 * @param {Object} Image grid
+		 */
+		grid : function(visible) {
+			var obj  = !/undefined/.test(typeof $("#grid")) ? $$("#grid")
+			                                                : $.create("div", {id: "grid", "class" : "right"}).hide(),
+			    self = this,
+			    anchor, thumb, i, nth;
+
+			if (/undefined/.test(this.grid.resize)) {
+				self.grid.resize = function() {
+					if (/left|right/.test(this.className)) this.style.height = ($.client.size.y - 75) + "px"
+				}
+			}
+
+			if (/^0$/.test(obj.childNodes.length) && !/^0$/.test(self.data.total)) {
+				this.grid.resize.call($("#grid"));
+				$.on("resize", function(){ this.grid.resize.call($("#grid")); }, "grid", this)
+
+				nth = self.data.total;
+				for (i = 0; i < nth; i++) {
+					obj.create("a", {id: "grid-" + i})
+					   .on("click", function(){
+					   		self.config.photo = parseInt(this.id.replace(/grid-/, ""));
+					   		self.display(this.id.replace(/grid-/, ""));
+						})
+					   .create("img", {src: self.data.get(i).data.sizes.first().source});
+				}
+			}
+
+			visible ? obj.show() : obj.hide();
+			return obj;
+		},
+
+		/**
 		 * Retrieves a photoset from Flickr
 		 */
 		init : function(){
@@ -93,7 +130,7 @@ $.on("ready", function(){
 
 				// UX listeners
 				switch (true) {
-					case (($.client.mobile) && ($.client.tablet)):
+					case $.client.mobile || $.client.tablet:
 						// $("#nav").hide();
 						// break;
 					default:
