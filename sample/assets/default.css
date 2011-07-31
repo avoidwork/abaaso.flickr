@@ -1,10 +1,3 @@
-@font-face {
-	font-family : 'Apertura-Condensed';
-	font-style  : normal;
-	font-weight : normal;
-	src         : url('../fonts/Apertura-Condensed.otf');
-}
-
 html, body {
 	min-width   : 600px;
 	min-height  : 100%;
@@ -19,7 +12,7 @@ html, body {
 body {
 	background  : #000;
 	color       : #fff;
-	font-family : 'Apertura-Condensed', arial, sans-serif, monospace;
+	font-family : arial, sans-serif, monospace;
 	font-size   : 12pt;
 	text-align  : left;
 	line-height : 20pt;
