@@ -118,7 +118,7 @@ $.on("init", function(){
 
 			var self = this,
 			    i    = (self.config.sets.length > 1) ? Math.floor(Math.random() * self.config.sets.length + 1) : 0,
-			    uri  = "http://api.flickr.com/services/rest/?&method=flickr.photosets.getPhotos&api_key=" + self.config.key + "&photoset_id=" + self.config.sets[i] + "&format=json",
+			    uri  = "http://api.flickr.com/services/rest/?&method=flickr.photosets.getPhotos&api_key=" + self.config.key + "&photoset_id=" + self.config.sets[i] + "&format=json&jsoncallback=?",
 			    key, fn, index;
 
 			self.config.loaded = self.config.sets[i];
@@ -194,7 +194,7 @@ $.on("init", function(){
 		 */
 		load : function(photo, index, display){
 			display = display || true;
-			var uri = "http://api.flickr.com/services/rest/?&method=flickr.photos.getSizes&api_key=" + this.config.key + "&photo_id=" + photo.key + "&format=json",
+			var uri = "http://api.flickr.com/services/rest/?&method=flickr.photos.getSizes&api_key=" + this.config.key + "&photo_id=" + photo.key + "&format=json&jsoncallback=?",
 			    self = this, fn;
 
 			if (typeof photo.sizes === "undefined") {
