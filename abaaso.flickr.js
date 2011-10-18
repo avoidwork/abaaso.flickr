@@ -32,12 +32,12 @@
  *
  * @author Jason Mulligan <jason.mulligan@avoidwork.com>
  * @link http://avoidwork.com
- * @requires abaaso 1.6.080
+ * @requires abaaso 1.7.080
  * @requires abaaso.fx 1.1
  * @version 1.0.tech
  */
-$.on("ready", function(){
-	this.define("flickr", {
+$.on("init", function(){
+	this.flickr = {
 		config : {
 			data    : {},
 			id      : null,
@@ -82,18 +82,15 @@ $.on("ready", function(){
 		 * @param {Object} Image grid
 		 */
 		grid : function(visible) {
-			var obj  = !/undefined/.test(typeof $("#grid")) ? $$("#grid")
-			                                                : $.create("div", {id: "grid", "class" : "right"}).hide(),
+			var obj  = typeof $("#grid") !== "undefined" ? $("#grid") : $.create("div", {id: "grid", "class" : "right"}).hide(),
 			    self = this,
 			    anchor, thumb, i, nth;
 
-			if (/undefined/.test(this.grid.resize)) {
-				self.grid.resize = function() {
-					if (/left|right/.test(this.className)) this.style.height = ($.client.size.y - 75) + "px"
-				}
+			self.grid.resize = function() {
+				if (/left|right/.test(this.className)) this.style.height = ($.client.size.y - 75) + "px"
 			}
 
-			if (/^0$/.test(obj.childNodes.length) && !/^0$/.test(self.data.total)) {
+			if (obj.childNodes.length === 0 && !self.data.total > 0) {
 				this.grid.resize.call($("#grid"));
 				$.on("resize", function(){ this.grid.resize.call($("#grid")); }, "grid", this)
 
@@ -116,64 +113,61 @@ $.on("ready", function(){
 		 * Retrieves a photoset from Flickr
 		 */
 		init : function(){
-			try {
-				if (this.config.id === null || this.config.key === null || ($.client.ie && $.client.version == 8))
-						throw Error($.label.error.invalidArguments);
+			if (this.config.id === null || this.config.key === null || ($.client.ie && $.client.version == 8))
+					throw Error($.label.error.invalidArguments);
 
-				var self = this,
-				    i    = (self.config.sets.length > 1) ? Math.floor(Math.random() * self.config.sets.length + 1) : 0,
-				    uri  = "http://api.flickr.com/services/rest/?&method=flickr.photosets.getPhotos&api_key=" + self.config.key + "&photoset_id=" + self.config.sets[i] + "&format=json&jsoncallback=?",
-				    key, fn, index;
+			var self = this,
+			    i    = (self.config.sets.length > 1) ? Math.floor(Math.random() * self.config.sets.length + 1) : 0,
+			    uri  = "http://api.flickr.com/services/rest/?&method=flickr.photosets.getPhotos&api_key=" + self.config.key + "&photoset_id=" + self.config.sets[i] + "&format=json",
+			    key, fn, index;
 
-				self.config.loaded = self.config.sets[i];
-				if (!/undefined/.test(typeof $("#year"))) $("#year").text(new Date().getFullYear());
+			self.config.loaded = self.config.sets[i];
+			if (typeof $("#year") !== "undefined") $("#year").text(new Date().getFullYear());
 
-				// UX listeners
-				switch (true) {
-					case $.client.mobile || $.client.tablet:
-						// $("#nav").hide();
-						// break;
-					default:
-						$("#next").on("click", function(){ this.next(); }, "next", this);
-						$("#prev").on("click", function(){ this.prev(); }, "prev", this);
-						$("#slideshow").on("click", function(){
-							switch (true) {
-								case this.config.slide:
-									$("#slideshow").update({innerHTML: "Start"});
-									this.config.slide = false;
-									clearTimeout(this.config.timer);
-									break;
-								default:
-									$("#slideshow").update({innerHTML: "Stop"});
-									this.config.slide = true;
-									this.next();
-							}
-						}, "slideshow", this);
-				}
-
-				fn = function(arg){
-					try {
-						self.config.data[self.config.loaded] = arg.photoset.photo;
-						$.store(self, arg.photoset.photo);
-						index = self.next();
-						for (var i = 0, loop = self.data.records.length; i < loop; i++) {
-							if (i == index) { continue; }
-							self.load(self.data.records[i].data, i, false);
+			// UX listeners
+			switch (true) {
+				case $.client.mobile || $.client.tablet:
+					// $("#nav").hide();
+					// break;
+				default:
+					$("#next").on("click", function(){ this.next(); }, "next", this);
+					$("#prev").on("click", function(){ this.prev(); }, "prev", this);
+					$("#slideshow").on("click", function(){
+						switch (true) {
+							case this.config.slide:
+								$("#slideshow").update({innerHTML: "Start"});
+								this.config.slide = false;
+								clearTimeout(this.config.timer);
+								break;
+							default:
+								$("#slideshow").update({innerHTML: "Stop"});
+								this.config.slide = true;
+								this.next();
 						}
-						delete self.init;	
-					}
-					catch (e) {
-						$.error(e, arguments, this);
-						self.init();
-					}
-				}
+					}, "slideshow", this);
+			}
 
-				// Displays a random photo in the set, builds a grid
-				$.jsonp(uri, fn, "jsoncallback");
+			fn = function(arg){
+				try {
+					self.config.data[self.config.loaded] = arg.photoset.photo;
+					$.store(self);
+					self.data.key = "id";
+					self.data.batch("set", arg.photoset.photo);
+					index = self.next();
+					for (var i = 0, loop = self.data.total; i < loop; i++) {
+						if (i == index) continue;
+						self.load(self.data.records[i], i, false);
+					}
+					delete self.init;	
+				}
+				catch (e) {
+					$.error(e, arguments, this);
+					self.init();
+				}
 			}
-			catch (e) {
-				$.error(e, arguments, this);
-			}
+
+			// Displays a random photo in the set, builds a grid
+			$.jsonp(uri, fn);
 		},
 
 		/**
@@ -200,43 +194,43 @@ $.on("ready", function(){
 		 */
 		load : function(photo, index, display){
 			display = display || true;
-			var uri = "http://api.flickr.com/services/rest/?&method=flickr.photos.getSizes&api_key=" + this.config.key + "&photo_id=" + photo.id + "&format=json&jsoncallback=?",
+			var uri = "http://api.flickr.com/services/rest/?&method=flickr.photos.getSizes&api_key=" + this.config.key + "&photo_id=" + photo.key + "&format=json",
 			    self = this, fn;
 
-			if (/undefined/.test(typeof photo.sizes)) {
-				fn = function(arg){
-					photo.sizes = [].concat(arg.sizes.size);
+			if (typeof photo.sizes === "undefined") {
+				fn = function(arg) {
+					photo.data.sizes = [].concat(arg.sizes.size);
 					if (display === true) self.display(index);
 				};
-				$.jsonp(uri, fn, "jsoncallback");
+				$.jsonp(uri, fn);
 			}
-			else { if (display === true) self.display(index); }
+			else if (display === true) self.display(index);
 		},
 
 		/**
 		 * Displays the next image in the set
 		 */
-		next : function(){
+		next : function() {
 			var i = (this.config.photo === null) ? Math.floor(Math.random() * this.data.records.length + 1) : parseInt(this.config.photo) + 1;
 
 			if (i > this.data.records.length) i = 0;
 			this.config.photo = i;
-			this.load(this.data.get(i).data, i);
+			this.load(this.data.get(i), i);
 			return i;
 		},
 
 		/**
 		 * Displays the previous image in the set
 		 */
-		prev : function(){
+		prev : function() {
 			var i = (this.config.photo === null) ? Math.floor(Math.random() * this.data.records.length + 1) : parseInt(this.config.photo) - 1;
 
 			if (i < 0 ) i = this.data.total - 1;
 			this.config.photo  = i;
-			this.load(this.data.get(i).data, i);
+			this.load(this.data.get(i), i);
 			return i;
 		},
 
 		version : "1.0.beta"
-	});
+	};
 }, "abaaso.flickr");
