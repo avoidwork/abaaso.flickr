@@ -63,10 +63,15 @@ $.on("init", function(){
 			var  self = this,
 			     r    = self.data.get(index).data,
 			     obj  = $("#photo"),
-			     img  = $.create("img", {style:"display:none;", src: r.sizes.last().source}, obj);
+			     img  = $.create("img", {style:"display:none;", src: r.sizes.last().source}, obj),
+			     cover = $("#cover");
+
+			obj.hide();
+			cover.addClass("loading");
 
 			img.on("load", function(){
 				this.un("load");
+				cover.removeClass("loading");
 				obj.hide();
 				obj.style.backgroundImage = "url(" + this.src + ")";
 				this.destroy();
@@ -116,6 +121,8 @@ $.on("init", function(){
 			if (this.config.id === null || this.config.key === null || ($.client.ie && $.client.version == 8))
 					throw Error($.label.error.invalidArguments);
 
+			cover.addClass("loading");
+
 			var self = this,
 			    i    = (self.config.sets.length > 1) ? Math.floor(Math.random() * self.config.sets.length + 1) : 0,
 			    uri  = "http://api.flickr.com/services/rest/?&method=flickr.photosets.getPhotos&api_key=" + self.config.key + "&photoset_id=" + self.config.sets[i] + "&format=json&jsoncallback=?",
@@ -158,7 +165,8 @@ $.on("init", function(){
 						if (i == index) continue;
 						self.load(self.data.records[i], i, false);
 					}
-					delete self.init;	
+					delete self.init;
+					return self;
 				}
 				catch (e) {
 					$.error(e, arguments, this);
@@ -167,7 +175,7 @@ $.on("init", function(){
 			}
 
 			// Displays a random photo in the set, builds a grid
-			$.jsonp(uri, fn);
+			return uri.jsonp(fn);
 		},
 
 		/**
@@ -185,6 +193,7 @@ $.on("init", function(){
 					this.next();
 					break;
 			}
+			return e;
 		},
 
 		/**
@@ -202,7 +211,7 @@ $.on("init", function(){
 					photo.data.sizes = [].concat(arg.sizes.size);
 					if (display === true) self.display(index);
 				};
-				$.jsonp(uri, fn);
+				uri.jsonp(fn);
 			}
 			else if (display === true) self.display(index);
 		},
