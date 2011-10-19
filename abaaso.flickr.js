@@ -159,7 +159,6 @@ $.on("init", function(){
 			this.on("afterDataSet", function(r) { this.load(r, false); }, "photo")
 			    .on("afterDataSync", function(data) {
 			    	var o = this.parentNode;
-
 			    	o.un("afterDataSet").un("afterDataSync");
 			    	o.config.data[o.config.loaded] = data.photo;
 			    	index = o.next();
@@ -223,7 +222,6 @@ $.on("init", function(){
 		 */
 		next : function() {
 			var i = (this.config.photo === null) ? Math.floor(Math.random() * this.data.records.length + 1) : parseInt(this.config.photo) + 1;
-
 			if (i > this.data.records.length) i = 0;
 			this.config.photo = i;
 			this.load(this.data.get(i));
@@ -235,7 +233,6 @@ $.on("init", function(){
 		 */
 		prev : function() {
 			var i = (this.config.photo === null) ? Math.floor(Math.random() * this.data.records.length + 1) : parseInt(this.config.photo) - 1;
-
 			if (i < 0 ) i = this.data.total - 1;
 			this.config.photo  = i;
 			this.load(this.data.get(i));
