@@ -53,7 +53,7 @@ $.on("init", function(){
 		/**
 		 * Displays a photo from the set
 		 *
-		 * @param index {Integer} Index of photo
+		 * @param {Integer} index  Index of photo
 		 */
 		display : function(index) {
 			if (index != this.config.photo) return;
@@ -83,7 +83,7 @@ $.on("init", function(){
 		/**
 		 * Displays or hides the image grid
 		 *
-		 * @param visible {Boolean} Display or hide the grid
+		 * @param {Boolean} visible  Display or hide the grid
 		 * @param {Object} Image grid
 		 */
 		grid : function(visible) {
@@ -117,7 +117,7 @@ $.on("init", function(){
 		/**
 		 * Retrieves a photoset from Flickr
 		 */
-		init : function(){
+		init : function() {
 			if (this.config.id === null || this.config.key === null || ($.client.ie && $.client.version == 8))
 					throw Error($.label.error.invalidArguments);
 
@@ -154,34 +154,27 @@ $.on("init", function(){
 					}, "slideshow", this);
 			}
 
-			fn = function(arg){
-				try {
-					self.config.data[self.config.loaded] = arg.photoset.photo;
-					$.store(self);
-					self.data.key = "id";
-					self.data.batch("set", arg.photoset.photo);
-					index = self.next();
-					for (var i = 0, loop = self.data.total; i < loop; i++) {
-						if (i == index) continue;
-						self.load(self.data.records[i], i, false);
-					}
-					delete self.init;
-					return self;
-				}
-				catch (e) {
-					$.error(e, arguments, this);
-					self.init();
-				}
-			}
+			$.store(this);
 
-			// Displays a random photo in the set, builds a grid
-			return uri.jsonp(fn);
+			this.on("afterDataSet", function(r) { this.load(r, false); }, "photo")
+			    .on("afterDataSync", function(data) {
+			    	var o = this.parentNode;
+
+			    	o.un("afterDataSet").un("afterDataSync");
+			    	o.config.data[o.config.loaded] = data.photo;
+			    	index = o.next();
+					delete o.init;
+			    }, "photoset", this.data);
+
+			this.data.source = "photoset";
+			this.data.key    = "id";
+			this.data.uri    = uri;
 		},
 
 		/**
 		 * Keypress handler
 		 */
-		key : function(e){
+		key : function(e) {
 			var unicode = (e.keyCode) ? e.keyCode : e.charCode;
 			switch (unicode) {
 				case 37:
@@ -199,21 +192,30 @@ $.on("init", function(){
 		/**
 		 * Retrieves sizes for a photo from the set
 		 * 
-		 * @param photo {Object} Photo object to display
+		 * @param  {Object}  photo    Photo record to display
+		 * @param  {Boolean} display  [Optional] Defaults to true, will display the photo
+		 * @return {Object} Photo record to display
 		 */
-		load : function(photo, index, display){
-			display = display || true;
-			var uri = "http://api.flickr.com/services/rest/?&method=flickr.photos.getSizes&api_key=" + this.config.key + "&photo_id=" + photo.key + "&format=json&jsoncallback=?",
-			    self = this, fn;
+		load : function(photo, display) {
+			display   = (display !== false);
+			var uri   = "http://api.flickr.com/services/rest/?&method=flickr.photos.getSizes&api_key=" + this.config.key + "&photo_id=" + photo.key + "&format=json&jsoncallback=?",
+			    index = this.data.keys[photo.key].index,
+			    self  = this, fn;
 
-			if (typeof photo.sizes === "undefined") {
-				fn = function(arg) {
-					photo.data.sizes = [].concat(arg.sizes.size);
-					if (display === true) self.display(index);
-				};
-				uri.jsonp(fn);
+			switch (true) {
+				case typeof photo.data.sizes === "undefined":
+					fn = function(arg) {
+						self.data.get(index).data.sizes = [].concat(arg.sizes.size);
+						if (display === true) self.display(index);
+					};
+					uri.jsonp(fn);
+					break;
+				case display:
+					this.display(index);
+					break;
 			}
-			else if (display === true) self.display(index);
+
+			return photo;
 		},
 
 		/**
@@ -224,7 +226,7 @@ $.on("init", function(){
 
 			if (i > this.data.records.length) i = 0;
 			this.config.photo = i;
-			this.load(this.data.get(i), i);
+			this.load(this.data.get(i));
 			return i;
 		},
 
@@ -236,7 +238,7 @@ $.on("init", function(){
 
 			if (i < 0 ) i = this.data.total - 1;
 			this.config.photo  = i;
-			this.load(this.data.get(i), i);
+			this.load(this.data.get(i));
 			return i;
 		},
 
