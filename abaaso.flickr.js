@@ -32,12 +32,12 @@
  *
  * @author Jason Mulligan <jason.mulligan@avoidwork.com>
  * @link http://avoidwork.com
- * @requires abaaso 1.7.080
+ * @requires abaaso 1.7.010
  * @requires abaaso.fx 1.1
  * @version 1.0.tech
  */
 $.on("init", function(){
-	this.flickr = {
+	$.module("flickr", {
 		config : {
 			data    : {},
 			id      : null,
@@ -60,22 +60,21 @@ $.on("init", function(){
 
 			clearTimeout(this.config.timer);
 
-			var  self = this,
-			     r    = self.data.get(index).data,
-			     obj  = $("#photo"),
-			     img  = $.create("img", {style:"display:none;", src: r.sizes.last().source}, obj),
+			var  self  = this,
+			     r     = self.data.get(index).data,
+			     obj   = $("#photo"),
+			     img   = $.create("img", {style:"display:none;", src: r.sizes.last().source}, obj),
 			     cover = $("#cover");
 
-			obj.hide();
+			obj.css("opacity", 0);
 			cover.addClass("loading");
 
 			img.on("load", function(){
 				this.un("load");
 				cover.removeClass("loading");
-				obj.hide();
 				obj.style.backgroundImage = "url(" + this.src + ")";
 				this.destroy();
-				obj.opacity(0).show().fade(1000);
+				obj.css("opacity", 1);
 				if (self.config.slide === true) self.config.timer = setTimeout(function(){ self.next.call(self); }, self.config.timeout);
 			});
 		},
@@ -159,7 +158,6 @@ $.on("init", function(){
 			this.on("afterDataSet", function(r) { this.load(r, false); }, "photo")
 			    .on("afterDataSync", function(data) {
 			    	var o = this.parentNode;
-			    	o.un("afterDataSet").un("afterDataSync");
 			    	o.config.data[o.config.loaded] = data.photo;
 			    	index = o.next();
 					delete o.init;
@@ -240,5 +238,5 @@ $.on("init", function(){
 		},
 
 		version : "1.0.beta"
-	};
+	});
 }, "abaaso.flickr");
