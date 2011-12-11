@@ -91,20 +91,23 @@ $.on("init", function(){
 
 			// UI listeners
 			$.on(document, "keydown", this.key, "keyboard", this);
+
+			$("nav a").on("mousedown", function() { this.addClass("click"); })
+			          .on("mouseup", function() { this.removeClass("click"); });
+
 			$("#next").on("click", this.next, "next", this);
 			$("#prev").on("click", this.prev, "prev", this);
-			$("#slideshow").on("click", function(){
+			$("#play").on("click", function(){
 				switch (true) {
 					case this.config.slide:
-						$("#slideshow").update({innerHTML: "Start"});
-						this.config.slide = false;
+						$("#play").removeClass("pause");
 						clearTimeout(this.config.timer);
 						break;
 					default:
-						$("#slideshow").update({innerHTML: "Stop"});
-						this.config.slide = true;
+						$("#play").addClass("pause");
 						this.next();
 				}
+				this.config.slide = !this.config.slide;
 			}, "slideshow", this);
 
 			// Setting up a data store
