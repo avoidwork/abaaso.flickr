@@ -69,7 +69,7 @@ $.on("init", function(){
 				obj.style.backgroundImage = "url(" + this.src + ")";
 				this.destroy();
 				obj.css("opacity", 1);
-				if (self.config.slide === true) self.config.timer = setTimeout(function(){ self.next.call(self); }, self.config.timeout);
+				if (self.config.slide === true) $.flickr.config.timer = setTimeout(function(){ self.next.call(self); }, $.flickr.config.timeout);
 			});
 		},
 
