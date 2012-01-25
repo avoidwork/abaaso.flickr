@@ -30,10 +30,12 @@
  *
  * @author Jason Mulligan <jason.mulligan@avoidwork.com>
  * @link http://avoidwork.com
- * @requires abaaso 1.7.5
- * @version 1.0
+ * @requires abaaso 1.8
+ * @version 1.1
  */
-$.on("init", function(){
+abaaso.on("init", function () {
+	var $ = window[abaaso.aliased];
+
 	$.module("flickr", {
 		config : {
 			data    : {},
