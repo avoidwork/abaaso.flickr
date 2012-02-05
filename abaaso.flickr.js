@@ -167,7 +167,7 @@ abaaso.on("init", function () {
 				case typeof photo.data.sizes === "undefined":
 					fn = function(arg) {
 						r = self.data.get(index);
-						r.data.sizes = [].concat(arg.sizes.size);
+						r.data.sizes = arg.sizes.size.clone();
 						self.data.set(r.key, r.data, true);
 						if (display === true) self.display(index);
 					};
