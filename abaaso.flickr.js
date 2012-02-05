@@ -31,7 +31,7 @@
  * @author Jason Mulligan <jason.mulligan@avoidwork.com>
  * @link http://avoidwork.com
  * @requires abaaso 1.8
- * @version 1.1
+ * @version 1.2
  */
 abaaso.on("init", function () {
 	var $ = window[abaaso.aliased];
@@ -161,12 +161,14 @@ abaaso.on("init", function () {
 			display   = (display !== false);
 			var uri   = "http://api.flickr.com/services/rest/?&method=flickr.photos.getSizes&api_key=" + this.config.key + "&photo_id=" + photo.key + "&format=json&jsoncallback=?",
 			    index = this.data.keys[photo.key].index,
-			    self  = this, fn;
+			    self  = this, fn, r;
 
 			switch (true) {
 				case typeof photo.data.sizes === "undefined":
 					fn = function(arg) {
-						self.data.get(index).data.sizes = [].concat(arg.sizes.size);
+						r = self.data.get(index);
+						r.data.sizes = [].concat(arg.sizes.size);
+						self.data.set(r.key, r.data, true);
 						if (display === true) self.display(index);
 					};
 					uri.jsonp(fn);
@@ -201,6 +203,6 @@ abaaso.on("init", function () {
 			return i;
 		},
 
-		version : "1.0"
+		version : "1.2"
 	});
 }, "abaaso.flickr");
