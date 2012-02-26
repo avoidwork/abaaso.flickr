@@ -96,25 +96,25 @@
 			if (typeof $("#year") !== "undefined") $("#year").text(new Date().getFullYear());
 
 			// UI listeners
-			$.on(document, "keydown", key, "keyboard", self);
+			$.on(document, "keydown", key);
 
 			$("nav a").on("mousedown", function () { this.addClass("click"); })
 			          .on("mouseup", function () { this.removeClass("click"); });
 
-			$("#next").on("click", next, "next", self);
-			$("#prev").on("click", prev, "prev", self);
+			$("#next").on("click", next);
+			$("#prev").on("click", prev);
 			$("#play").on("click", function () {
 				switch (true) {
 					case config.slide:
-						$("#play").removeClass("pause");
+						this.removeClass("pause");
 						clearTimeout(config.timer);
 						break;
 					default:
-						$("#play").addClass("pause");
+						this.addClass("pause");
 						next();
 				}
 				config.slide = !config.slide;
-			}, "slideshow", self);
+			});
 
 			// Setting up a data store
 			$.store(self);
@@ -231,5 +231,5 @@
 	fn = function () { abaaso.module("flickr", flickr()); };
 
 	// AMD support
-	typeof define === "function" ? define("abaaso.flickr", ["abaaso"], fn) : abaaso.on("init", fn, "abaaso.flickr");
+	typeof define === "function" ? define("abaaso.flickr", ["abaaso"], fn) : abaaso.on("render", fn, "abaaso.flickr");
 })(window);
