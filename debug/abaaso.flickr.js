@@ -30,14 +30,17 @@
  *
  * @author Jason Mulligan <jason.mulligan@avoidwork.com>
  * @link http://avoidwork.com
- * @requires abaaso 1.8
- * @version 1.2
+ * @requires abaaso 1.9
+ * @version 1.3
  */
-abaaso.on("init", function () {
-	var $ = window[abaaso.aliased];
+(function (window) {
+	"use strict";
 
-	$.module("flickr", {
-		config : {
+	var flickr = (function () {
+		var $ = window[abaaso.aliased],
+		    config, display, init, key, load, next, prev;
+
+		config = {
 			data    : {},
 			id      : null,
 			key     : null,
@@ -46,15 +49,16 @@ abaaso.on("init", function () {
 			timer   : undefined,
 			timeout : 30000,
 			sets    : [""],
-			slide   : false
-		},
+			slide   : false,
+			version : "1.3"
+		};
 
 		/**
 		 * Displays a photo from the set
 		 *
 		 * @param {Integer} index  Index of photo
 		 */
-		display : function(index) {
+		display = function(index) {
 			if (index != this.config.photo) return;
 
 			clearTimeout(this.config.timer);
@@ -73,12 +77,12 @@ abaaso.on("init", function () {
 				obj.css("opacity", 1);
 				if (self.config.slide === true) $.flickr.config.timer = setTimeout(function(){ self.next.call(self); }, $.flickr.config.timeout);
 			});
-		},
+		};
 
 		/**
 		 * Retrieves a photoset from Flickr
 		 */
-		init : function() {
+		init = function() {
 			if (this.config.id === null || this.config.key === null)
 					throw Error($.label.error.invalidArguments);
 
@@ -125,7 +129,7 @@ abaaso.on("init", function () {
 			this.data.source = "photoset";
 			this.data.key    = "id";
 			this.data.uri    = uri;
-		},
+		};
 
 		/**
 		 * Keypress handler
@@ -133,7 +137,7 @@ abaaso.on("init", function () {
 		 * @param {Object} e Keyboard event
 		 * @return {Object} Keyboard event
 		 */
-		key : function(e) {
+		key = function(e) {
 			var code = (e.keyCode) ? e.keyCode : e.charCode;
 			switch (code) {
 				case 37:
@@ -146,7 +150,7 @@ abaaso.on("init", function () {
 					break;
 			}
 			return e;
-		},
+		};
 
 		/**
 		 * Retrieves sizes for a photo from the set
@@ -155,7 +159,7 @@ abaaso.on("init", function () {
 		 * @param  {Boolean} display  [Optional] Defaults to true, will display the photo
 		 * @return {Object} Photo record to display
 		 */
-		load : function(photo, display) {
+		load = function(photo, display) {
 			if (typeof photo === "undefined" || typeof photo.key === "undefined") return this.next();
 
 			display   = (display !== false);
@@ -179,30 +183,38 @@ abaaso.on("init", function () {
 			}
 
 			return photo;
-		},
+		};
 
 		/**
 		 * Displays the next image in the set
 		 */
-		next : function() {
+		next = function() {
 			var i = (this.config.photo === null) ? Math.floor(Math.random() * this.data.records.length + 1) : parseInt(this.config.photo) + 1;
 			if (i > this.data.records.length) i = 0;
 			this.config.photo = i;
 			this.load(this.data.get(i));
 			return i;
-		},
+		};
 
 		/**
 		 * Displays the previous image in the set
 		 */
-		prev : function() {
+		prev = function() {
 			var i = (this.config.photo === null) ? Math.floor(Math.random() * this.data.records.length + 1) : parseInt(this.config.photo) - 1;
 			if (i < 0 ) i = this.data.total - 1;
 			this.config.photo  = i;
 			this.load(this.data.get(i));
 			return i;
-		},
+		};
 
-		version : "1.2"
-	});
-}, "abaaso.flickr");
+		// @constructor
+		return {
+			active : active,
+			create : create
+		};
+	}),
+	fn = function () { abaaso.module("flickr", flickr()); };
+
+	// AMD support
+	typeof define === "function" ? define("abaaso.flickr", ["abaaso"], fn) : abaaso.on("init", fn, "abaaso.flickr");
+})(window);
