@@ -58,12 +58,12 @@
 		 *
 		 * @param {Integer} index  Index of photo
 		 */
-		display = function(index) {
-			if (index != this.config.photo) return;
+		display = function (index) {
+			if (index != config.photo) return;
 
-			clearTimeout(this.config.timer);
+			clearTimeout(config.timer);
 
-			var  self  = this,
+			var  self  = $.flickr,
 			     r     = self.data.get(index).data,
 			     obj   = $("#photo"),
 			     img   = $.create("img", {style:"display:none;", src: r.sizes.last().source}, obj);
@@ -72,7 +72,7 @@
 
 			img.on("load", function(){
 				this.un("load");
-				obj.style.backgroundImage = "url(" + this.src + ")";
+				obj.css("background-image", "url(" + this.src + ")");
 				this.destroy();
 				obj.css("opacity", 1);
 				if (self.config.slide === true) $.flickr.config.timer = setTimeout(function(){ self.next.call(self); }, $.flickr.config.timeout);
@@ -82,53 +82,52 @@
 		/**
 		 * Retrieves a photoset from Flickr
 		 */
-		init = function() {
-			if (this.config.id === null || this.config.key === null)
+		init = function () {
+			if (config.id === null || config.key === null)
 					throw Error($.label.error.invalidArguments);
 
-			var self = this,
-			    i    = (self.config.sets.length > 1) ? Math.floor(Math.random() * self.config.sets.length + 1) : 0,
-			    uri  = "http://api.flickr.com/services/rest/?&method=flickr.photosets.getPhotos&api_key=" + self.config.key + "&photoset_id=" + self.config.sets[i] + "&format=json&jsoncallback=?",
-			    key, fn, index;
+			var self = $.flickr,
+			    i    = (config.sets.length > 1) ? Math.floor(Math.random() * config.sets.length + 1) : 0,
+			    uri  = "http://api.flickr.com/services/rest/?&method=flickr.photosets.getPhotos&api_key=" + config.key + "&photoset_id=" + config.sets[i] + "&format=json&jsoncallback=?",
+			    fn, index;
 
-			self.config.loaded = self.config.sets[i];
+			config.loaded = config.sets[i];
 
 			if (typeof $("#year") !== "undefined") $("#year").text(new Date().getFullYear());
 
 			// UI listeners
-			$.on(document, "keydown", this.key, "keyboard", this);
+			$.on(document, "keydown", key, "keyboard", self);
 
-			$("nav a").on("mousedown", function() { this.addClass("click"); })
-			          .on("mouseup", function() { this.removeClass("click"); });
+			$("nav a").on("mousedown", function () { this.addClass("click"); })
+			          .on("mouseup", function () { this.removeClass("click"); });
 
-			$("#next").on("click", this.next, "next", this);
-			$("#prev").on("click", this.prev, "prev", this);
-			$("#play").on("click", function(){
+			$("#next").on("click", next, "next", self);
+			$("#prev").on("click", prev, "prev", self);
+			$("#play").on("click", function () {
 				switch (true) {
-					case this.config.slide:
+					case config.slide:
 						$("#play").removeClass("pause");
-						clearTimeout(this.config.timer);
+						clearTimeout(config.timer);
 						break;
 					default:
 						$("#play").addClass("pause");
-						this.next();
+						next();
 				}
-				this.config.slide = !this.config.slide;
-			}, "slideshow", this);
+				config.slide = !config.slide;
+			}, "slideshow", self);
 
 			// Setting up a data store
-			$.store(this);
-			this.on("afterDataSet", function(r) { this.load(r, false); }, "photo")
+			$.store(self);
+			self.on("afterDataSet", function(r) { load(r, false); }, "photo")
 			    .on("afterDataSync", function(data) {
-			    	var o = this.parentNode;
-			    	o.config.data[o.config.loaded] = data.photo;
-			    	index = o.next();
-					delete o.init;
-			    }, "photoset", this.data);
+			    	config.data[config.loaded] = data.photo;
+			    	index = next();
+			    	delete abaaso.flickr.init;
+			    }, "photoset");
 
-			this.data.source = "photoset";
-			this.data.key    = "id";
-			this.data.uri    = uri;
+			self.data.source = "photoset";
+			self.data.key    = "id";
+			self.data.uri    = uri;
 		};
 
 		/**
@@ -137,16 +136,16 @@
 		 * @param {Object} e Keyboard event
 		 * @return {Object} Keyboard event
 		 */
-		key = function(e) {
+		key = function (e) {
 			var code = (e.keyCode) ? e.keyCode : e.charCode;
 			switch (code) {
 				case 37:
 				case 40:
-					this.prev();
+					prev();
 					break;
 				case 38:
 				case 39:
-					this.next();
+					next();
 					break;
 			}
 			return e;
@@ -155,17 +154,18 @@
 		/**
 		 * Retrieves sizes for a photo from the set
 		 * 
-		 * @param  {Object}  photo    Photo record to display
-		 * @param  {Boolean} display  [Optional] Defaults to true, will display the photo
+		 * @param  {Object}  photo Photo record to display
+		 * @param  {Boolean} show  [Optional] Defaults to true, will display the photo
 		 * @return {Object} Photo record to display
 		 */
-		load = function(photo, display) {
-			if (typeof photo === "undefined" || typeof photo.key === "undefined") return this.next();
+		load = function (photo, show) {
+			if (typeof photo === "undefined" || typeof photo.key === "undefined") return next();
 
-			display   = (display !== false);
-			var uri   = "http://api.flickr.com/services/rest/?&method=flickr.photos.getSizes&api_key=" + this.config.key + "&photo_id=" + photo.key + "&format=json&jsoncallback=?",
-			    index = this.data.keys[photo.key].index,
-			    self  = this, fn, r;
+			show   = (show !== false);
+			var self  = $.flickr,
+			    uri   = "http://api.flickr.com/services/rest/?&method=flickr.photos.getSizes&api_key=" + config.key + "&photo_id=" + photo.key + "&format=json&jsoncallback=?",
+			    index = self.data.keys[photo.key].index,
+			    fn, r;
 
 			switch (true) {
 				case typeof photo.data.sizes === "undefined":
@@ -173,12 +173,12 @@
 						r = self.data.get(index);
 						r.data.sizes = arg.sizes.size.clone();
 						self.data.set(r.key, r.data, true);
-						if (display === true) self.display(index);
+						if (show === true) display(index);
 					};
 					uri.jsonp(fn);
 					break;
-				case display:
-					this.display(index);
+				case show:
+					display(index);
 					break;
 			}
 
@@ -187,30 +187,45 @@
 
 		/**
 		 * Displays the next image in the set
+		 * 
+		 * @param  {Object} e Window event
+		 * @return {Undefined} undefined
 		 */
-		next = function() {
-			var i = (this.config.photo === null) ? Math.floor(Math.random() * this.data.records.length + 1) : parseInt(this.config.photo) + 1;
-			if (i > this.data.records.length) i = 0;
-			this.config.photo = i;
-			this.load(this.data.get(i));
+		next = function (e) {
+			var self = $.flickr,
+			    i    = (config.photo === null) ? Math.floor(Math.random() * self.data.records.length + 1) : parseInt(config.photo) + 1;
+
+			if (i > self.data.total) i = 0;
+			config.photo = i;
+			load(self.data.get(i));
 			return i;
 		};
 
 		/**
 		 * Displays the previous image in the set
+		 * 
+		 * @param  {Object} e Window event
+		 * @return {Undefined} undefined
 		 */
-		prev = function() {
-			var i = (this.config.photo === null) ? Math.floor(Math.random() * this.data.records.length + 1) : parseInt(this.config.photo) - 1;
-			if (i < 0 ) i = this.data.total - 1;
-			this.config.photo  = i;
-			this.load(this.data.get(i));
+		prev = function (e) {
+			var self = $.flickr,
+			    i = (config.photo === null) ? Math.floor(Math.random() * self.data.records.length + 1) : parseInt(config.photo) - 1;
+
+			if (i < 0 ) i = self.data.total - 1;
+			config.photo  = i;
+			load(self.data.get(i));
 			return i;
 		};
 
 		// @constructor
 		return {
-			active : active,
-			create : create
+			config  : config,
+			display : display,
+			init    : init,
+			key     : key,
+			load    : load,
+			next    : next,
+			prev    : prev
 		};
 	}),
 	fn = function () { abaaso.module("flickr", flickr()); };
