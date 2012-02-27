@@ -100,7 +100,7 @@
 			$.on(document, "keyup", function (e) { $(".click").removeClass("click"); });
 			$("#next").on("click", function (e) { next(e); });
 			$("#prev").on("click", function (e) { prev(e); });
-			$("#play").on("click", function (e) {
+			$("#play").on("mouseup", function (e) {
 				var fn = function () {
 					config.timer = setTimeout(fn, config.timeout);
 					next();
