@@ -102,8 +102,8 @@
 			$("#prev").on("click", function (e) { prev(e); });
 			$("#play").on("click", function (e) {
 				var fn = function () {
-					next();
 					config.timer = setTimeout(fn, config.timeout);
+					next();
 				};
 
 				switch (true) {
