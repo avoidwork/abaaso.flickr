@@ -47,7 +47,7 @@
 			photo   : null,
 			loaded  : null,
 			timer   : null,
-			timeout : 30000,
+			timeout : 15000,
 			sets    : [""],
 			slide   : false,
 			version : "1.3"
@@ -61,8 +61,6 @@
 		display = function (index) {
 			if (index != config.photo) return;
 
-			clearTimeout(config.timer);
-
 			var  self  = $.flickr,
 			     r     = self.data.get(index).data,
 			     obj   = $("#photo"),
@@ -70,13 +68,14 @@
 
 			obj.css("opacity", 0);
 
-			img.on("load", function(){
+			img.on("load", function () {
 				this.un("load");
 				obj.css("background-image", "url(" + this.src + ")");
 				this.destroy();
 				obj.css("opacity", 1);
-				if (self.config.slide === true) $.flickr.config.timer = setTimeout(function(){ self.next.call(self); }, $.flickr.config.timeout);
 			});
+
+			if (typeof $.timer.flickr !== "undefined") $.timer.flickr = setTimeout(function () { next(); }, $.flickr.config.timeout);
 		};
 
 		/**
@@ -100,21 +99,16 @@
 			$.on(document, "keyup", function (e) { $(".click").removeClass("click"); });
 			$("#next").on("click", function (e) { next(e); });
 			$("#prev").on("click", function (e) { prev(e); });
-			$("#play").on("mouseup", function (e) {
-				var fn = function () {
-					config.timer = setTimeout(fn, config.timeout);
-					next();
-				};
-
+			$("#play").on("mousedown", function (e) {
 				switch (true) {
-					case config.slide:
-						clearTimeout(config.timer);
-						config.timer = null;
+					case typeof $.timer.flickr !== "undefined":
+						clearTimeout($.timer.flickr);
+						delete $.timer.flickr;
 						break;
 					default:
-						fn();
+						$.timer.flickr = null;
+						next();
 				}
-				config.slide = !config.slide;
 			});
 
 			// Setting up a data store
@@ -168,7 +162,7 @@
 			var self  = $.flickr,
 			    uri   = "http://api.flickr.com/services/rest/?&method=flickr.photos.getSizes&api_key=" + config.key + "&photo_id=" + photo.key + "&format=json&jsoncallback=?",
 			    index = self.data.keys[photo.key].index,
-			    fn, r;
+			    fn, r, img;
 
 			switch (true) {
 				case typeof photo.data.sizes === "undefined":
@@ -176,7 +170,14 @@
 						r = self.data.get(index);
 						r.data.sizes = arg.sizes.size.clone();
 						self.data.set(r.key, r.data, true);
-						if (show === true) display(index);
+						switch (show) {
+							case true:
+								display(index);
+								break;
+							case false:
+								img = new Image();
+								img.src = r.data.sizes.last().source;
+						}
 					};
 					uri.jsonp(fn);
 					break;
