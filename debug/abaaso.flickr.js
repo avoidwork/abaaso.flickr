@@ -46,7 +46,7 @@
 			key     : null,
 			photo   : null,
 			loaded  : null,
-			timer   : undefined,
+			timer   : null,
 			timeout : 30000,
 			sets    : [""],
 			slide   : false,
@@ -96,16 +96,23 @@
 			if (typeof $("#year") !== "undefined") $("#year").text(new Date().getFullYear());
 
 			// UI listeners
-			$.on(document, "keydown", key);
-			$("#next").on("click", next);
-			$("#prev").on("click", prev);
-			$("#play").on("click", function () {
+			$.on(document, "keydown", function (e) { key(e); });
+			$.on(document, "keyup", function (e) { $(".click").removeClass("click"); });
+			$("#next").on("click", function (e) { next(e); });
+			$("#prev").on("click", function (e) { prev(e); });
+			$("#play").on("click", function (e) {
+				var fn = function () {
+					next();
+					config.timer = setTimeout(fn, config.timeout);
+				};
+
 				switch (true) {
 					case config.slide:
 						clearTimeout(config.timer);
+						config.timer = null;
 						break;
 					default:
-						next();
+						fn();
 				}
 				config.slide = !config.slide;
 			});
@@ -136,10 +143,12 @@
 				case 37:
 				case 40:
 					prev();
+					$("#prev").addClass("click");
 					break;
 				case 38:
 				case 39:
 					next();
+					$("#next").addClass("click");
 					break;
 			}
 			return e;
