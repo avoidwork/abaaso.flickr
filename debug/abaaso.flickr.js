@@ -97,20 +97,14 @@
 
 			// UI listeners
 			$.on(document, "keydown", key);
-
-			$("nav a").on("mousedown", function () { this.addClass("click"); })
-			          .on("mouseup", function () { this.removeClass("click"); });
-
 			$("#next").on("click", next);
 			$("#prev").on("click", prev);
 			$("#play").on("click", function () {
 				switch (true) {
 					case config.slide:
-						this.removeClass("pause");
 						clearTimeout(config.timer);
 						break;
 					default:
-						this.addClass("pause");
 						next();
 				}
 				config.slide = !config.slide;
