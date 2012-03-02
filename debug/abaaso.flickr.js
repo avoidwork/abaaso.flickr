@@ -90,16 +90,8 @@
 			    uri  = "http://api.flickr.com/services/rest/?&method=flickr.photosets.getPhotos&api_key=" + config.key + "&photoset_id=" + config.sets[i] + "&format=json&jsoncallback=?",
 			    fn, index;
 
-			config.loaded = config.sets[i];
-
-			if (typeof $("#year") !== "undefined") $("#year").text(new Date().getFullYear());
-
-			// UI listeners
-			$.on(document, "keydown", function (e) { key(e); });
-			$.on(document, "keyup", function (e) { $(".click").removeClass("click"); });
-			$("#next").on("click", function (e) { next(e); });
-			$("#prev").on("click", function (e) { prev(e); });
-			$("#play").on("mousedown", function (e) {
+			// Click & spacebar handler
+			fn = function () {
 				switch (true) {
 					case typeof $.timer.flickr !== "undefined":
 						clearTimeout($.timer.flickr);
@@ -108,8 +100,22 @@
 					default:
 						$.timer.flickr = null;
 						next();
-				}
+				};
+			};
+
+			config.loaded = config.sets[i];
+
+			if (typeof $("#year") !== "undefined") $("#year").text(new Date().getFullYear());
+
+			// UI listeners
+			$.on(document, "keydown", function (e) {
+				key(e);
+				if (typeof e.keyCode === "number" && e.keyCode === 32) fn();
 			});
+			$.on(document, "keyup", function (e) { $(".click").removeClass("click"); });
+			$("#next").on("click", function (e) { next(e); });
+			$("#prev").on("click", function (e) { prev(e); });
+			$("#play").on("mousedown", fn);
 
 			// Setting up a data store
 			$.store(self);
@@ -133,6 +139,9 @@
 		 */
 		key = function (e) {
 			var code = (e.keyCode) ? e.keyCode : e.charCode;
+
+			if (typeof $.timer.flickr !== "undefined") return;
+
 			switch (code) {
 				case 37:
 				case 40:
