@@ -64,31 +64,15 @@
 	flickr.prototype.init = function () {
 		if (this.id === null || this.key === null) throw Error($.label.error.invalidArguments);
 
-		var self = self,
+		var self = this,
 		    i    = (self.sets.length > 1) ? Math.floor(Math.random() * self.sets.length + 1) : 0,
-		    uri  = "http://api.flickr.com/services/rest/?&method=flickr.photosets.getPhotos&api_key=" + self.key + "&photoset_id=" + self.sets[i] + "&format=json&jsoncallback=?",
-		    fn;
-
-		// Click & spacebar handler
-		fn = function () {
-			switch (true) {
-				case typeof $.timer.flickr !== "undefined":
-					clearTimeout($.timer.flickr);
-					delete $.timer.flickr;
-					break;
-				default:
-					$.timer.flickr = null;
-					next(); // @todo subvert this
-			};
-		};
+		    uri  = "http://api.flickr.com/services/rest/?&method=flickr.photosets.getPhotos&api_key=" + self.key + "&photoset_id=" + self.sets[i] + "&format=json&jsoncallback=?";
 
 		self.loaded = self.sets[i];
 
 		// Setting up a data store
 		$.store(self);
-		self.on("afterDataSet",  function(r) { this.load(r, false); }, "photo")
-		    .on("afterDataSync", function(data) { this.data[this.loaded] = data.photo; }, "photoset");
-
+		self.on("afterDataSet", function (r) { this.load(r); }, "photo").on("afterDataSync", function (data) { this.data[this.loaded] = data.photo; }, "photoset");
 		self.data.source = "photoset";
 		self.data.key    = "id";
 		self.data.uri    = uri;
@@ -98,10 +82,9 @@
 	 * Retrieves sizes for a photo from the set
 	 * 
 	 * @param  {Object}  photo Photo record to display
-	 * @param  {Boolean} show  [Optional] Defaults to true, will display the photo
-	 * @return {Object} Photo record to display
+	 * @return {Object}        Photo record to display
 	 */
-	flickr.prototype.load = function (photo, show) {
+	flickr.prototype.load = function (photo) {
 		if (typeof photo === "undefined" || typeof photo.key === "undefined") return;
 
 		var self  = this,
@@ -113,7 +96,7 @@
 			r = self.data.get(index);
 			r.data.sizes = arg.sizes.size.clone();
 			self.data.set(r.key, r.data, true);
-			if (show) self.fire("imageSizes", r.data.sizes);
+			self.fire("flickrImage", r);
 		};
 
 		if (typeof photo.data.sizes === "undefined") uri.jsonp(fn);
