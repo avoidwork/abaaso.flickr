@@ -20,6 +20,7 @@ module.exports = function (grunt) {
 				"src/intro.js",
 				"src/core.js",
 				"src/prototype.js",
+				"src/api.js",
 				"src/init.js",
 				"src/outro.js"
 			],
@@ -27,7 +28,7 @@ module.exports = function (grunt) {
 		  }
 		},
 		min : {
-			"lib/<%= pkg.name %>.min.js" : ["<banner>", "lib/<%= pkg.name %>.js"]
+			"lib/abaaso.flickr.min.js" : ["<banner>", "lib/abaaso.flickr.js"]
 		},
 		test : {
 			files : ["test/**/*.js"]
