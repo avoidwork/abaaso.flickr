@@ -99,7 +99,7 @@
 			self.fire("flickrImage", r);
 		};
 
-		if (typeof photo.data.sizes === "undefined") uri.jsonp(fn);
+		if (typeof photo.data.sizes === "undefined") uri.jsonp(fn, function () { $.fire("error"); }, "jsoncallback");
 		return photo;
 	};
 

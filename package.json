@@ -1,0 +1,37 @@
+{
+  "name": "abaaso.flickr",
+  "description": "abaaso.flickr provides easy abstraction of a photo set",
+  "version": "1.4.0",
+  "homepage": "https://github.com/avoidwork/abaaso.flickr",
+  "author": {
+    "name": "Jason Mulligan",
+    "email": "jason.mulligan@avoidwork.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/avoidwork/abaaso.flickr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/avoidwork/abaaso.flickr/issues"
+  },
+  "licenses": [
+    {
+      "type": "BSD-3",
+      "url": "https://github.com/avoidwork/abaaso.flickr/blob/master/LICENSE"
+    }
+  ],
+  "main": "lib/abaaso.flickr",
+  "engines": {
+    "node": ">= 0.6.0"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "dependencies": {
+    "abaaso": ">= 3.2.2"
+  },
+  "devDependencies": {
+    "grunt": "~0.3.14"
+  },
+  "keywords": ["flickr", "api"]
+}
